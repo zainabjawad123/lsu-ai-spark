@@ -32,9 +32,7 @@ const ModuleCard = ({ id, title, description, image, topics, progress = 0, locke
           src={image} 
           alt={title}
           className={`w-full h-full object-cover ${isLocked ? 'filter grayscale' : ''}`}
-          onError={(e) => {
-            e.currentTarget.src = "https://via.placeholder.com/400x200?text=AI+Module";
-          }}
+          loading="lazy"
         />
         {isLocked && (
           <div className="absolute inset-0 bg-black/30 flex items-center justify-center">

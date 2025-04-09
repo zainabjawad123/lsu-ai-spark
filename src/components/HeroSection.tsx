@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, Play } from "lucide-react";
 import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 const HeroSection = () => {
   const [videoOpen, setVideoOpen] = useState(false);
@@ -43,12 +43,9 @@ const HeroSection = () => {
           
           <div className="hidden lg:block">
             <img 
-              src="/ai-learning-hero.jpg" 
+              src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158"
               alt="AI Learning" 
-              className="rounded-lg shadow-2xl animate-fade-in"
-              onError={(e) => {
-                e.currentTarget.src = "https://via.placeholder.com/600x400?text=AI+Learning";
-              }}
+              className="rounded-lg shadow-2xl animate-fade-in object-cover h-[400px] w-full"
             />
           </div>
         </div>
@@ -56,6 +53,7 @@ const HeroSection = () => {
 
       <Dialog open={videoOpen} onOpenChange={setVideoOpen}>
         <DialogContent className="max-w-4xl p-0 bg-transparent border-none">
+          <DialogTitle className="sr-only">Introduction Video</DialogTitle>
           <div className="aspect-video w-full">
             <iframe 
               width="100%" 

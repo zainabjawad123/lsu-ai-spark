@@ -4,34 +4,34 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useUser } from "@/context/UserContext";
 
-// Mock data for featured modules
+// Mock data for featured modules with reliable image sources
 const featuredModules = [
   {
     id: "ai-fundamentals",
     title: "AI Fundamentals",
     description: "Learn the core concepts of artificial intelligence, including historical context, key algorithms, and modern applications.",
-    image: "/ai-fundamentals.jpg",
+    image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5",
     topics: 5
   },
   {
     id: "machine-learning",
     title: "Machine Learning",
     description: "Explore supervised and unsupervised learning, neural networks, and how to implement basic ML models.",
-    image: "/machine-learning.jpg",
+    image: "https://images.unsplash.com/photo-1531297484001-80022131f5a1",
     topics: 7
   },
   {
     id: "prompt-engineering",
     title: "Prompt Engineering",
     description: "Master the techniques for writing effective prompts that generate the best results from large language models.",
-    image: "/prompt-engineering.jpg",
+    image: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81",
     topics: 4
   },
   {
     id: "ai-ethics",
     title: "AI Ethics",
     description: "Understand the ethical considerations in AI development including bias, privacy, and responsible implementation.",
-    image: "/ai-ethics.jpg",
+    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
     topics: 6
   }
 ];
@@ -81,7 +81,7 @@ const FeaturedModules = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {featuredModules.map((module, index) => {
             const isLocked = !unlockedModules.includes(module.id);
-            const progress = isLocked ? 0 : getModuleProgress(module.id);
+            const progress = getModuleProgress(module.id);
             
             return (
               <div 

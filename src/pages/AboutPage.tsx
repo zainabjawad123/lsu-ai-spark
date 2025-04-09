@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
 import { Play, CheckCircle2, Award, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -42,12 +42,9 @@ const AboutPage = () => {
             </div>
             <div className="relative group cursor-pointer hover-scale" onClick={() => setVideoOpen(true)}>
               <img 
-                src="/about-video-thumbnail.jpg" 
+                src="https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b"
                 alt="LSU AI Spark Team" 
-                className="rounded-lg shadow-lg"
-                onError={(e) => {
-                  e.currentTarget.src = "https://via.placeholder.com/600x400?text=LSU+AI+Team";
-                }}
+                className="rounded-lg shadow-lg w-full h-[300px] object-cover"
               />
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
                 <div className="bg-white/90 rounded-full p-4">
@@ -103,6 +100,7 @@ const AboutPage = () => {
       
       <Dialog open={videoOpen} onOpenChange={setVideoOpen}>
         <DialogContent className="max-w-4xl p-0 bg-transparent border-none">
+          <DialogTitle className="sr-only">About LSU AI Spark</DialogTitle>
           <div className="aspect-video w-full">
             <iframe 
               width="100%" 

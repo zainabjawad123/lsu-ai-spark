@@ -10,14 +10,9 @@ const Navbar = () => {
     <nav className="border-b bg-white py-4 sticky top-0 z-50">
       <div className="container flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <img 
-            src="/lsu-logo.png" 
-            alt="LSU Logo" 
-            className="h-10 w-auto"
-            onError={(e) => {
-              e.currentTarget.src = "https://via.placeholder.com/40x40?text=LSU";
-            }} 
-          />
+          <div className="h-10 w-10 bg-lsu-purple text-white rounded-md flex items-center justify-center font-bold">
+            LSU
+          </div>
           <span className="text-xl font-bold text-lsu-purple">LSU AI Spark</span>
         </Link>
         
