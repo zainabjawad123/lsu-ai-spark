@@ -10,6 +10,7 @@ import ModulesPage from "./pages/ModulesPage";
 import LearningPage from "./pages/LearningPage";
 import { LoginPage, SignupPage, DashboardPage } from "./pages/AuthPages";
 import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
 import NotFound from "./pages/NotFound";
 import { UserProvider } from "./context/UserContext";
 
@@ -35,8 +36,9 @@ const App = () => (
               <Route path="/learning/:moduleId" element={<LearningPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
               <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>

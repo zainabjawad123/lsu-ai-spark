@@ -7,7 +7,7 @@ const Navbar = () => {
   const { user, logout, isAuthenticated } = useUser();
 
   return (
-    <nav className="border-b bg-white py-4">
+    <nav className="border-b bg-white py-4 sticky top-0 z-50">
       <div className="container flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <img 
@@ -25,6 +25,7 @@ const Navbar = () => {
           <Link to="/" className="text-gray-700 hover:text-lsu-purple">Home</Link>
           <Link to="/modules" className="text-gray-700 hover:text-lsu-purple">Modules</Link>
           <Link to="/about" className="text-gray-700 hover:text-lsu-purple">About</Link>
+          <Link to="/contact" className="text-gray-700 hover:text-lsu-purple">Contact</Link>
           {isAuthenticated && (
             <Link to="/dashboard" className="text-gray-700 hover:text-lsu-purple">My Dashboard</Link>
           )}
