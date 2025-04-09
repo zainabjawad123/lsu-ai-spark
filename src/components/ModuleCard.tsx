@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Link } from "react-router-dom";
+import { useUser } from "@/context/UserContext";
+import { Lock } from "lucide-react";
 
 interface ModuleCardProps {
   id: string;
@@ -11,20 +13,31 @@ interface ModuleCardProps {
   image: string;
   topics: number;
   progress?: number;
+  locked?: boolean;
 }
 
-const ModuleCard = ({ id, title, description, image, topics, progress = 0 }: ModuleCardProps) => {
+const ModuleCard = ({ id, title, description, image, topics, progress = 0, locked = false }: ModuleCardProps) => {
+  const { isAuthenticated, unlockedModules } = useUser();
+  
+  // Check if the module is locked based on the unlockedModules state
+  const isLocked = locked || (unlockedModules && !unlockedModules.includes(id));
+  
   return (
-    <Card className="overflow-hidden flex flex-col h-full transition-all hover:shadow-md">
+    <Card className={`overflow-hidden flex flex-col h-full transition-all ${isLocked ? 'opacity-80' : 'hover:shadow-md'}`}>
       <div className="relative h-40 overflow-hidden">
         <img 
           src={image} 
           alt={title}
-          className="w-full h-full object-cover"
+          className={`w-full h-full object-cover ${isLocked ? 'filter grayscale' : ''}`}
           onError={(e) => {
             e.currentTarget.src = "https://via.placeholder.com/400x200?text=AI+Module";
           }}
         />
+        {isLocked && (
+          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+            <Lock className="text-white h-10 w-10" />
+          </div>
+        )}
         {progress > 0 && (
           <div className="absolute bottom-0 left-0 right-0 bg-white/80 p-1.5">
             <Progress value={progress} className="h-2" />
@@ -43,9 +56,12 @@ const ModuleCard = ({ id, title, description, image, topics, progress = 0 }: Mod
       </CardContent>
       
       <CardFooter className="pt-0">
-        <Link to={`/learning/${id}`} className="w-full">
-          <Button className="w-full bg-lsu-purple hover:bg-lsu-purple/90">
-            {progress > 0 ? "Continue Learning" : "Start Learning"}
+        <Link to={isAuthenticated ? `/learning/${id}` : '/login'} className="w-full" aria-disabled={isLocked}>
+          <Button 
+            className={`w-full ${isLocked ? 'bg-gray-400 cursor-not-allowed' : 'bg-lsu-purple hover:bg-lsu-purple/90'}`}
+            disabled={isLocked}
+          >
+            {isLocked ? "Locked" : (progress > 0 ? "Continue Learning" : "Start Learning")}
           </Button>
         </Link>
       </CardFooter>

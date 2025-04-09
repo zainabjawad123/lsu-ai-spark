@@ -1,28 +1,26 @@
-
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
+import ModuleCard from "@/components/ModuleCard";
+import { useUser } from "@/context/UserContext";
 
 export const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { toast } = useToast();
+  const { login, isAuthenticated } = useUser();
   
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login attempt with:", email);
-    
-    // Mock successful login
-    toast({
-      title: "Login Successful",
-      description: "Welcome back to LSU AI Spark!",
-    });
+    login(email, password);
   };
+  
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" />;
+  }
   
   return (
     <div className="container flex items-center justify-center py-20">
@@ -86,18 +84,16 @@ export const SignupPage = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { toast } = useToast();
+  const { signup, isAuthenticated } = useUser();
   
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Signup attempt with:", { name, email });
-    
-    // Mock successful signup
-    toast({
-      title: "Account Created",
-      description: "Welcome to LSU AI Spark! Your account has been created successfully.",
-    });
+    signup(name, email, password);
   };
+  
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" />;
+  }
   
   return (
     <div className="container flex items-center justify-center py-20">
@@ -164,10 +160,12 @@ export const SignupPage = () => {
 };
 
 export const DashboardPage = () => {
-  // Mock user data
+  const { user, unlockedModules } = useUser();
+  
+  // Mock user data with dynamic unlocked modules
   const userData = {
-    name: "John Doe",
-    email: "john.doe@example.com",
+    name: user?.name || "Guest",
+    email: user?.email || "guest@example.com",
     enrolledModules: [
       {
         id: "ai-fundamentals",
@@ -183,7 +181,8 @@ export const DashboardPage = () => {
         description: "Master the techniques for writing effective prompts",
         progress: 25,
         image: "/prompt-engineering.jpg",
-        topics: 4
+        topics: 4,
+        locked: !unlockedModules?.includes("prompt-engineering")
       }
     ],
     completedModules: [
@@ -216,7 +215,11 @@ export const DashboardPage = () => {
               <h2 className="text-xl font-semibold mb-6">Continue Learning</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {userData.enrolledModules.map(module => (
-                  <ModuleCard key={module.id} {...module} />
+                  <ModuleCard 
+                    key={module.id} 
+                    {...module} 
+                    locked={module.locked || (unlockedModules && !unlockedModules.includes(module.id))}
+                  />
                 ))}
               </div>
             </>
@@ -305,7 +308,12 @@ export const DashboardPage = () => {
               </CardContent>
               <CardFooter>
                 <Link to="/learning/machine-learning" className="w-full">
-                  <Button className="w-full bg-lsu-purple hover:bg-lsu-purple/90">Start Learning</Button>
+                  <Button 
+                    className="w-full bg-lsu-purple hover:bg-lsu-purple/90"
+                    disabled={!unlockedModules?.includes("machine-learning")}
+                  >
+                    {unlockedModules?.includes("machine-learning") ? "Start Learning" : "Locked"}
+                  </Button>
                 </Link>
               </CardFooter>
             </Card>

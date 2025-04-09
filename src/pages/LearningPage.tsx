@@ -1,11 +1,13 @@
 
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, Play, Award } from "lucide-react";
+import { Check, Play, Award, Lock, CheckCircle } from "lucide-react";
+import { useUser } from "@/context/UserContext";
+import { useToast } from "@/components/ui/use-toast";
 
 // Mock course module data
 const moduleData = {
@@ -117,7 +119,39 @@ const LearningPage = () => {
   const [showQuiz, setShowQuiz] = useState(false);
   const [quizAnswers, setQuizAnswers] = useState<number[]>([]);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
-  const [topicsCompleted, setTopicsCompleted] = useState<string[]>([]);
+  const [videoWatched, setVideoWatched] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { 
+    isAuthenticated, 
+    markVideoCompleted, 
+    isVideoCompleted, 
+    userProgress, 
+    unlockedModules,
+    completeModule
+  } = useUser();
+  
+  // Check if user is authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to access the learning modules.",
+      });
+      navigate("/login");
+    }
+  }, [isAuthenticated, navigate, toast]);
+  
+  // Check if module is unlocked
+  useEffect(() => {
+    if (moduleId && unlockedModules && !unlockedModules.includes(moduleId)) {
+      toast({
+        title: "Module Locked",
+        description: "You need to complete previous modules first.",
+      });
+      navigate("/modules");
+    }
+  }, [moduleId, unlockedModules, navigate, toast]);
   
   if (!moduleId || !moduleData[moduleId as keyof typeof moduleData]) {
     return <div className="container py-12 text-center">Module not found</div>;
@@ -126,13 +160,34 @@ const LearningPage = () => {
   const module = moduleData[moduleId as keyof typeof moduleData];
   const currentTopic = module.topics[currentTopicIndex];
   const quiz = quizData[moduleId as keyof typeof quizData]?.[currentTopic.id];
-  const progress = (topicsCompleted.length / module.topics.length) * 100;
+  
+  // Check if current topic's video has been completed
+  const isCurrentTopicVideoCompleted = isVideoCompleted(moduleId, currentTopic.id);
+  
+  // Calculate progress based on videos watched
+  const completedTopicsCount = module.topics.reduce((count, topic) => {
+    return isVideoCompleted(moduleId, topic.id) ? count + 1 : count;
+  }, 0);
+  
+  const progress = (completedTopicsCount / module.topics.length) * 100;
   
   const handleTopicChange = (index: number) => {
     setCurrentTopicIndex(index);
     setShowQuiz(false);
     setQuizAnswers([]);
     setQuizSubmitted(false);
+    setVideoWatched(isVideoCompleted(moduleId, module.topics[index].id));
+  };
+  
+  const handleVideoComplete = () => {
+    if (!isCurrentTopicVideoCompleted) {
+      markVideoCompleted(moduleId, currentTopic.id);
+      setVideoWatched(true);
+      toast({
+        title: "Video Completed",
+        description: "You can now take the quiz for this topic.",
+      });
+    }
   };
   
   const handleQuizAnswer = (questionIndex: number, answerIndex: number) => {
@@ -143,8 +198,17 @@ const LearningPage = () => {
   
   const handleQuizSubmit = () => {
     setQuizSubmitted(true);
-    if (!topicsCompleted.includes(currentTopic.id)) {
-      setTopicsCompleted([...topicsCompleted, currentTopic.id]);
+    
+    // Check if this was the last topic in the module
+    if (currentTopicIndex === module.topics.length - 1) {
+      // Check if all topics are now completed
+      const allTopicsCompleted = module.topics.every((topic) => 
+        isVideoCompleted(moduleId, topic.id)
+      );
+      
+      if (allTopicsCompleted) {
+        completeModule(moduleId);
+      }
     }
   };
   
@@ -162,7 +226,7 @@ const LearningPage = () => {
         
         <div className="mt-4">
           <div className="flex justify-between text-sm text-gray-700 mb-2">
-            <span>{topicsCompleted.length} of {module.topics.length} topics completed</span>
+            <span>{completedTopicsCount} of {module.topics.length} topics completed</span>
             <span>{Math.round(progress)}%</span>
           </div>
           <Progress value={progress} className="h-2" />
@@ -176,35 +240,44 @@ const LearningPage = () => {
               <h2 className="font-semibold text-gray-800">Topics</h2>
             </div>
             <ul>
-              {module.topics.map((topic, index) => (
-                <li key={topic.id}>
-                  <button
-                    onClick={() => handleTopicChange(index)}
-                    className={`w-full text-left px-4 py-3 flex items-center justify-between border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors ${
-                      currentTopicIndex === index ? "bg-lsu-purple/5" : ""
-                    }`}
-                  >
-                    <span className="flex items-center">
-                      <span className={`mr-3 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
-                        topicsCompleted.includes(topic.id) ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400"
-                      }`}>
-                        {topicsCompleted.includes(topic.id) ? (
-                          <Check className="h-4 w-4" />
-                        ) : (
-                          <span className="text-xs">{index + 1}</span>
-                        )}
+              {module.topics.map((topic, index) => {
+                const isCompleted = isVideoCompleted(moduleId, topic.id);
+                const isLocked = index > 0 && !isVideoCompleted(moduleId, module.topics[index - 1].id);
+                
+                return (
+                  <li key={topic.id}>
+                    <button
+                      onClick={() => !isLocked && handleTopicChange(index)}
+                      disabled={isLocked}
+                      className={`w-full text-left px-4 py-3 flex items-center justify-between border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors ${
+                        currentTopicIndex === index ? "bg-lsu-purple/5" : ""
+                      } ${isLocked ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
+                    >
+                      <span className="flex items-center">
+                        <span className={`mr-3 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
+                          isCompleted ? "bg-green-100 text-green-600" : 
+                          isLocked ? "bg-gray-100 text-gray-400" : "bg-gray-100 text-gray-400"
+                        }`}>
+                          {isCompleted ? (
+                            <Check className="h-4 w-4" />
+                          ) : isLocked ? (
+                            <Lock className="h-3 w-3" />
+                          ) : (
+                            <span className="text-xs">{index + 1}</span>
+                          )}
+                        </span>
+                        <span className={`${isCompleted ? "text-gray-700" : "text-gray-600"}`}>
+                          {topic.title}
+                        </span>
                       </span>
-                      <span className={`${topicsCompleted.includes(topic.id) ? "text-gray-700" : "text-gray-600"}`}>
-                        {topic.title}
-                      </span>
-                    </span>
-                  </button>
-                </li>
-              ))}
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </div>
           
-          {topicsCompleted.length === module.topics.length && (
+          {completedTopicsCount === module.topics.length && (
             <div className="mt-6 bg-lsu-gold/10 p-4 rounded-lg border border-lsu-gold/30 flex flex-col items-center">
               <Award className="h-8 w-8 text-lsu-gold mb-2" />
               <h3 className="font-semibold text-gray-800 mb-1">Module Completed!</h3>
@@ -220,7 +293,7 @@ const LearningPage = () => {
           <Tabs defaultValue="video" className="w-full">
             <TabsList className="grid grid-cols-2 mb-6">
               <TabsTrigger value="video" disabled={showQuiz}>Video Lecture</TabsTrigger>
-              <TabsTrigger value="quiz" disabled={!quiz}>Quiz</TabsTrigger>
+              <TabsTrigger value="quiz" disabled={!quiz || !videoWatched}>Quiz</TabsTrigger>
             </TabsList>
             
             <TabsContent value="video" className="mt-0">
@@ -237,19 +310,42 @@ const LearningPage = () => {
                   </div>
                   
                   <div className="prose max-w-none">
-                    <h2 className="text-2xl font-semibold mb-3 text-gray-800">{currentTopic.title}</h2>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-2xl font-semibold mb-0 text-gray-800">{currentTopic.title}</h2>
+                      {isCurrentTopicVideoCompleted && (
+                        <div className="flex items-center text-green-600">
+                          <CheckCircle className="mr-1 h-5 w-5" />
+                          <span>Watched</span>
+                        </div>
+                      )}
+                    </div>
+                    
                     <p className="text-gray-700 mb-6">{currentTopic.description}</p>
                     
-                    {quiz && (
-                      <div className="mt-8">
+                    <div className="flex justify-between items-center mt-8">
+                      {!isCurrentTopicVideoCompleted ? (
+                        <Button 
+                          onClick={handleVideoComplete}
+                          className="bg-lsu-purple hover:bg-lsu-purple/90"
+                        >
+                          Mark as Watched
+                        </Button>
+                      ) : (
+                        <div className="text-green-600 flex items-center">
+                          <CheckCircle className="mr-2 h-5 w-5" />
+                          <span>Video Completed</span>
+                        </div>
+                      )}
+                      
+                      {quiz && videoWatched && (
                         <Button 
                           onClick={() => setShowQuiz(true)}
                           className="bg-lsu-purple hover:bg-lsu-purple/90"
                         >
                           Take Quiz <Play className="ml-2 h-4 w-4" />
                         </Button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </>
               )}
@@ -327,7 +423,7 @@ const LearningPage = () => {
                           Review Lecture
                         </Button>
                         
-                        {currentTopicIndex < module.topics.length - 1 && (
+                        {currentTopicIndex < module.topics.length - 1 && quizPassed && (
                           <Button 
                             onClick={() => {
                               handleTopicChange(currentTopicIndex + 1);

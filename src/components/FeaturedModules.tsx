@@ -2,6 +2,7 @@
 import ModuleCard from "./ModuleCard";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useUser } from "@/context/UserContext";
 
 // Mock data for featured modules
 const featuredModules = [
@@ -36,6 +37,8 @@ const featuredModules = [
 ];
 
 const FeaturedModules = () => {
+  const { unlockedModules } = useUser();
+  
   return (
     <section className="py-20 bg-gray-50">
       <div className="container">
@@ -53,7 +56,10 @@ const FeaturedModules = () => {
               className="animate-fade-in" 
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <ModuleCard {...module} />
+              <ModuleCard 
+                {...module} 
+                locked={unlockedModules ? !unlockedModules.includes(module.id) : false}
+              />
             </div>
           ))}
         </div>

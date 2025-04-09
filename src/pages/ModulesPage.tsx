@@ -3,6 +3,7 @@ import { useState } from "react";
 import ModuleCard from "@/components/ModuleCard";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useUser } from "@/context/UserContext";
 
 // Mock data for modules
 const allModules = [
@@ -75,6 +76,7 @@ const allModules = [
 const ModulesPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
+  const { unlockedModules } = useUser();
   
   const filteredModules = allModules
     .filter(module => 
@@ -110,7 +112,11 @@ const ModulesPage = () => {
       {filteredModules.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {filteredModules.map(module => (
-            <ModuleCard key={module.id} {...module} />
+            <ModuleCard 
+              key={module.id} 
+              {...module} 
+              locked={unlockedModules ? !unlockedModules.includes(module.id) : false}
+            />
           ))}
         </div>
       ) : (

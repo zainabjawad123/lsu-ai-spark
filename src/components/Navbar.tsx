@@ -1,8 +1,11 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useUser } from "@/context/UserContext";
 
 const Navbar = () => {
+  const { user, logout, isAuthenticated } = useUser();
+
   return (
     <nav className="border-b bg-white py-4">
       <div className="container flex items-center justify-between">
@@ -22,15 +25,27 @@ const Navbar = () => {
           <Link to="/" className="text-gray-700 hover:text-lsu-purple">Home</Link>
           <Link to="/modules" className="text-gray-700 hover:text-lsu-purple">Modules</Link>
           <Link to="/about" className="text-gray-700 hover:text-lsu-purple">About</Link>
+          {isAuthenticated && (
+            <Link to="/dashboard" className="text-gray-700 hover:text-lsu-purple">My Dashboard</Link>
+          )}
         </div>
         
         <div className="flex items-center gap-3">
-          <Link to="/login">
-            <Button variant="outline" className="hidden md:flex">Login</Button>
-          </Link>
-          <Link to="/signup">
-            <Button className="bg-lsu-purple text-white hover:bg-lsu-purple/90">Sign Up</Button>
-          </Link>
+          {isAuthenticated ? (
+            <div className="flex items-center gap-3">
+              <span className="text-sm hidden md:inline">Hello, {user?.name}</span>
+              <Button variant="outline" onClick={logout} className="hidden md:flex">Logout</Button>
+            </div>
+          ) : (
+            <>
+              <Link to="/login">
+                <Button variant="outline" className="hidden md:flex">Login</Button>
+              </Link>
+              <Link to="/signup">
+                <Button className="bg-lsu-purple text-white hover:bg-lsu-purple/90">Sign Up</Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>
