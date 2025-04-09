@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -58,6 +58,51 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [unlockedModules, setUnlockedModules] = useState<string[]>(["ai-fundamentals"]);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Load user data from localStorage on initial render
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    const storedProgress = localStorage.getItem('userProgress');
+    const storedQuizScores = localStorage.getItem('quizScores');
+    const storedUnlockedModules = localStorage.getItem('unlockedModules');
+    
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    
+    if (storedProgress) {
+      setUserProgress(JSON.parse(storedProgress));
+    }
+    
+    if (storedQuizScores) {
+      setQuizScores(JSON.parse(storedQuizScores));
+    }
+    
+    if (storedUnlockedModules) {
+      setUnlockedModules(JSON.parse(storedUnlockedModules));
+    }
+  }, []);
+
+  // Save data to localStorage whenever it changes
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('user');
+    }
+  }, [user]);
+
+  useEffect(() => {
+    localStorage.setItem('userProgress', JSON.stringify(userProgress));
+  }, [userProgress]);
+
+  useEffect(() => {
+    localStorage.setItem('quizScores', JSON.stringify(quizScores));
+  }, [quizScores]);
+
+  useEffect(() => {
+    localStorage.setItem('unlockedModules', JSON.stringify(unlockedModules));
+  }, [unlockedModules]);
 
   const login = (email: string, password: string) => {
     // Mock login logic
