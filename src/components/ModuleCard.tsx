@@ -22,6 +22,9 @@ const ModuleCard = ({ id, title, description, image, topics, progress = 0, locke
   // Check if the module is locked based on the unlockedModules state
   const isLocked = locked || (unlockedModules && !unlockedModules.includes(id));
   
+  // Only show progress if the module is unlocked
+  const showProgress = !isLocked && progress > 0;
+  
   return (
     <Card className={`overflow-hidden flex flex-col h-full transition-all ${isLocked ? 'opacity-80' : 'hover:shadow-md'}`}>
       <div className="relative h-40 overflow-hidden">
@@ -38,7 +41,7 @@ const ModuleCard = ({ id, title, description, image, topics, progress = 0, locke
             <Lock className="text-white h-10 w-10" />
           </div>
         )}
-        {progress > 0 && (
+        {showProgress && (
           <div className="absolute bottom-0 left-0 right-0 bg-white/80 p-1.5">
             <Progress value={progress} className="h-2" />
             <p className="text-xs text-center mt-1 font-medium text-gray-700">{progress}% complete</p>

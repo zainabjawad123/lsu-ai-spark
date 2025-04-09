@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, Play, Award, Lock, CheckCircle } from "lucide-react";
+import { Check, Play, Award, Lock, CheckCircle, AlertCircle } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -113,7 +114,6 @@ const LearningPage = () => {
   const { moduleId } = useParams<{ moduleId: string }>();
   const [currentTopicIndex, setCurrentTopicIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("video");
-  const [showQuiz, setShowQuiz] = useState(false);
   const [quizAnswers, setQuizAnswers] = useState<number[]>([]);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [videoWatched, setVideoWatched] = useState(false);
@@ -125,7 +125,9 @@ const LearningPage = () => {
     isVideoCompleted, 
     userProgress, 
     unlockedModules,
-    completeModule
+    completeModule,
+    setQuizScore,
+    areAllTopicsCompleted
   } = useUser();
   
   useEffect(() => {
@@ -170,10 +172,11 @@ const LearningPage = () => {
   
   const progress = (completedTopicsCount / module.topics.length) * 100;
   
+  const allTopicsCompleted = areAllTopicsCompleted(moduleId, module.topics.length);
+  
   const handleTopicChange = (index: number) => {
     setCurrentTopicIndex(index);
     setActiveTab("video");
-    setShowQuiz(false);
     setQuizAnswers([]);
     setQuizSubmitted(false);
     setVideoWatched(isVideoCompleted(moduleId, module.topics[index].id));
@@ -199,10 +202,12 @@ const LearningPage = () => {
   const handleQuizSubmit = () => {
     setQuizSubmitted(true);
     
-    if (currentTopicIndex === module.topics.length - 1) {
-      const allTopicsCompleted = module.topics.every((topic) => 
-        isVideoCompleted(moduleId, topic.id)
-      );
+    if (quiz) {
+      const score = quiz.reduce((score, q, index) => 
+        score + (quizAnswers[index] === q.correctAnswer ? 1 : 0), 0);
+      
+      const percentage = Math.round((score / quiz.length) * 100);
+      setQuizScore(moduleId, percentage);
       
       if (allTopicsCompleted) {
         completeModule(moduleId);
@@ -217,7 +222,14 @@ const LearningPage = () => {
   const quizPassed = quizScore >= Math.ceil(quiz?.length * 0.7);
   
   const switchToQuiz = () => {
-    setActiveTab("quiz");
+    if (allTopicsCompleted) {
+      setActiveTab("quiz");
+    } else {
+      toast({
+        title: "Complete all videos",
+        description: "You need to complete all videos in this module before taking the quiz.",
+      });
+    }
   };
   
   return (
@@ -295,7 +307,7 @@ const LearningPage = () => {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-2 mb-6">
               <TabsTrigger value="video">Video Lecture</TabsTrigger>
-              <TabsTrigger value="quiz" disabled={!videoWatched}>Quiz</TabsTrigger>
+              <TabsTrigger value="quiz" disabled={!allTopicsCompleted}>Quiz</TabsTrigger>
             </TabsList>
             
             <TabsContent value="video" className="mt-0">
@@ -337,12 +349,12 @@ const LearningPage = () => {
                     </div>
                   )}
                   
-                  {quiz && videoWatched && (
+                  {allTopicsCompleted && (
                     <Button 
                       onClick={switchToQuiz}
                       className="bg-lsu-purple hover:bg-lsu-purple/90"
                     >
-                      Take Quiz <Play className="ml-2 h-4 w-4" />
+                      Take Module Quiz <Play className="ml-2 h-4 w-4" />
                     </Button>
                   )}
                 </div>
@@ -350,13 +362,13 @@ const LearningPage = () => {
             </TabsContent>
             
             <TabsContent value="quiz" className="mt-0">
-              {quiz && (
+              {allTopicsCompleted ? (
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h2 className="text-2xl font-semibold mb-6 text-gray-800">Quiz: {currentTopic.title}</h2>
+                  <h2 className="text-2xl font-semibold mb-6 text-gray-800">Module Quiz: {module.title}</h2>
                   
                   {!quizSubmitted ? (
                     <>
-                      {quiz.map((question, qIndex) => (
+                      {quiz && quiz.map((question, qIndex) => (
                         <div key={qIndex} className="mb-8">
                           <h3 className="text-lg font-medium mb-3">
                             {qIndex + 1}. {question.question}
@@ -382,7 +394,7 @@ const LearningPage = () => {
                       
                       <Button 
                         onClick={handleQuizSubmit}
-                        disabled={quizAnswers.length < quiz.length}
+                        disabled={!quiz || quizAnswers.length < (quiz?.length || 0)}
                         className="bg-lsu-purple hover:bg-lsu-purple/90 mt-4"
                       >
                         Submit Quiz
@@ -397,11 +409,11 @@ const LearningPage = () => {
                         {quizPassed ? 'Quiz Passed!' : 'Almost there!'}
                       </h3>
                       <p className="text-xl mb-4">
-                        You scored {quizScore} out of {quiz.length}
+                        You scored {quizScore} out of {quiz?.length}
                       </p>
                       {quizPassed ? (
                         <p className="text-green-600 mb-6">
-                          Congratulations! You've completed this topic.
+                          Congratulations! You've completed this module.
                         </p>
                       ) : (
                         <p className="text-amber-600 mb-6">
@@ -420,20 +432,19 @@ const LearningPage = () => {
                         >
                           Review Lecture
                         </Button>
-                        
-                        {currentTopicIndex < module.topics.length - 1 && quizPassed && (
-                          <Button 
-                            onClick={() => {
-                              handleTopicChange(currentTopicIndex + 1);
-                            }}
-                            className="bg-lsu-purple hover:bg-lsu-purple/90"
-                          >
-                            Next Topic
-                          </Button>
-                        )}
                       </div>
                     </div>
                   )}
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
+                  <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold mb-2">Complete All Videos</h3>
+                  <p className="text-gray-600 mb-4">
+                    You need to watch and complete all video topics in this module before you can take the quiz.
+                  </p>
+                  <Progress value={progress} className="h-2 mb-4 max-w-md mx-auto" />
+                  <p className="text-sm text-gray-500">{completedTopicsCount} of {module.topics.length} topics completed</p>
                 </div>
               )}
             </TabsContent>

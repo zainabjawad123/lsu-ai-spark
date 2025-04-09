@@ -1,81 +1,67 @@
+
 import { useState } from "react";
-import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ModuleCard from "@/components/ModuleCard";
 import { useUser } from "@/context/UserContext";
+import { Link } from "react-router-dom";
+import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Award, BookOpen, Check, CheckCircle, Lock } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 
 export const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login, isAuthenticated } = useUser();
-  
-  const handleLogin = (e: React.FormEvent) => {
+  const { login } = useUser();
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     login(email, password);
   };
-  
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" />;
-  }
-  
+
   return (
-    <div className="container flex items-center justify-center py-20">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-lsu-purple">Login to LSU AI Spark</CardTitle>
-          <CardDescription>Enter your credentials to access your account</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin}>
-            <div className="grid gap-6">
-              <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="your.email@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="grid gap-3">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link to="/forgot-password" className="text-sm text-lsu-purple hover:underline">
-                    Forgot password?
-                  </Link>
-                </div>
-                <Input 
-                  id="password" 
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <Button 
-                type="submit" 
-                className="w-full bg-lsu-purple hover:bg-lsu-purple/90"
-              >
-                Sign In
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-        <CardFooter className="flex flex-col items-center">
-          <div className="text-center text-sm text-gray-600 mt-2">
-            Don't have an account?{" "}
-            <Link to="/signup" className="text-lsu-purple hover:underline">
-              Sign up
-            </Link>
-          </div>
-        </CardFooter>
-      </Card>
+    <div className="container max-w-md py-16">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-lsu-purple">Welcome Back</h1>
+        <p className="text-gray-600 mt-2">Sign in to continue your learning journey</p>
+      </div>
+      
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <label htmlFor="email" className="text-gray-700">Email</label>
+          <Input 
+            id="email"
+            type="email" 
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)} 
+            placeholder="Your email address"
+            required
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <label htmlFor="password" className="text-gray-700">Password</label>
+          <Input 
+            id="password"
+            type="password" 
+            value={password} 
+            onChange={(e) => setPassword(e.target.value)} 
+            placeholder="Your password"
+            required
+          />
+        </div>
+        
+        <Button type="submit" className="w-full bg-lsu-purple hover:bg-lsu-purple/90">
+          Sign In
+        </Button>
+      </form>
+      
+      <div className="text-center mt-6">
+        <p className="text-gray-600">
+          Don't have an account? <Link to="/signup" className="text-lsu-purple font-medium">Sign up</Link>
+        </p>
+      </div>
     </div>
   );
 };
@@ -84,309 +70,274 @@ export const SignupPage = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { signup, isAuthenticated } = useUser();
-  
-  const handleSignup = (e: React.FormEvent) => {
+  const { signup } = useUser();
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     signup(name, email, password);
   };
-  
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" />;
-  }
-  
+
   return (
-    <div className="container flex items-center justify-center py-20">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-lsu-purple">Create an Account</CardTitle>
-          <CardDescription>Sign up to start learning AI with LSU</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignup}>
-            <div className="grid gap-6">
-              <div className="grid gap-3">
-                <Label htmlFor="name">Full Name</Label>
-                <Input 
-                  id="name" 
-                  placeholder="John Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="your.email@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="grid gap-3">
-                <Label htmlFor="password">Password</Label>
-                <Input 
-                  id="password" 
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <p className="text-xs text-gray-500">Password must be at least 8 characters long</p>
-              </div>
-              <Button 
-                type="submit" 
-                className="w-full bg-lsu-purple hover:bg-lsu-purple/90"
-              >
-                Create Account
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-        <CardFooter className="flex flex-col items-center">
-          <div className="text-center text-sm text-gray-600 mt-2">
-            Already have an account?{" "}
-            <Link to="/login" className="text-lsu-purple hover:underline">
-              Sign in
-            </Link>
-          </div>
-        </CardFooter>
-      </Card>
+    <div className="container max-w-md py-16">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-lsu-purple">Create an Account</h1>
+        <p className="text-gray-600 mt-2">Join LSU AI Spark to start learning</p>
+      </div>
+      
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <label htmlFor="name" className="text-gray-700">Full Name</label>
+          <Input 
+            id="name"
+            type="text" 
+            value={name} 
+            onChange={(e) => setName(e.target.value)} 
+            placeholder="Your full name"
+            required
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <label htmlFor="email" className="text-gray-700">Email</label>
+          <Input 
+            id="email"
+            type="email" 
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)} 
+            placeholder="Your email address"
+            required
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <label htmlFor="password" className="text-gray-700">Password</label>
+          <Input 
+            id="password"
+            type="password" 
+            value={password} 
+            onChange={(e) => setPassword(e.target.value)} 
+            placeholder="Create a password"
+            required
+          />
+        </div>
+        
+        <Button type="submit" className="w-full bg-lsu-purple hover:bg-lsu-purple/90">
+          Create Account
+        </Button>
+      </form>
+      
+      <div className="text-center mt-6">
+        <p className="text-gray-600">
+          Already have an account? <Link to="/login" className="text-lsu-purple font-medium">Sign in</Link>
+        </p>
+      </div>
     </div>
   );
 };
 
 export const DashboardPage = () => {
-  const { user, unlockedModules } = useUser();
+  const { user, unlockedModules, quizScores, getTotalProgress, canGetCertificate } = useUser();
   
-  // Mock user data with dynamic unlocked modules
-  const userData = {
-    name: user?.name || "Guest",
-    email: user?.email || "guest@example.com",
-    enrolledModules: [
-      {
-        id: "ai-fundamentals",
-        title: "AI Fundamentals",
-        description: "Learn the core concepts of artificial intelligence",
-        progress: 60,
-        image: "/ai-fundamentals.jpg",
-        topics: 5
-      },
-      {
-        id: "prompt-engineering",
-        title: "Prompt Engineering",
-        description: "Master the techniques for writing effective prompts",
-        progress: 25,
-        image: "/prompt-engineering.jpg",
-        topics: 4,
-        locked: !unlockedModules?.includes("prompt-engineering")
-      }
-    ],
-    completedModules: [
-      {
-        id: "intro-to-ai",
-        title: "Introduction to AI",
-        description: "A brief overview of artificial intelligence",
-        image: "/intro-to-ai.jpg",
-        completionDate: "March 15, 2023",
-        topics: 3
-      }
-    ]
-  };
+  const moduleData = [
+    {
+      id: "ai-fundamentals",
+      title: "AI Fundamentals",
+      description: "Learn the core concepts of artificial intelligence.",
+      topics: 5
+    },
+    {
+      id: "machine-learning",
+      title: "Machine Learning",
+      description: "Explore supervised and unsupervised learning algorithms.",
+      topics: 7
+    },
+    {
+      id: "prompt-engineering",
+      title: "Prompt Engineering",
+      description: "Master creating effective prompts for AI models.",
+      topics: 4
+    },
+    {
+      id: "ai-ethics",
+      title: "AI Ethics",
+      description: "Understand ethical considerations in AI development.",
+      topics: 6
+    }
+  ];
+  
+  const totalProgress = getTotalProgress();
   
   return (
     <div className="container py-12">
-      <h1 className="text-3xl font-bold text-lsu-purple mb-2">Welcome back, {userData.name}</h1>
-      <p className="text-gray-600 mb-8">Continue your learning journey where you left off.</p>
+      <div className="bg-white rounded-xl shadow-md p-6 mb-8 border border-gray-100">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-lsu-purple">Welcome, {user?.name}</h1>
+            <p className="text-gray-600 mt-1">Continue your AI learning journey</p>
+          </div>
+          
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="bg-lsu-gold text-lsu-purple hover:bg-lsu-gold/90 flex items-center gap-2">
+                <Award className="h-5 w-5" />
+                Get Certificate
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Course Certificate</DialogTitle>
+                <DialogDescription>
+                  {canGetCertificate() ? 
+                    "Congratulations! You've completed all modules and can now download your certificate." : 
+                    "You need to complete all modules before you can get your certificate."}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                {canGetCertificate() ? (
+                  <div className="text-center">
+                    <Award className="h-24 w-24 mx-auto text-lsu-gold mb-4" />
+                    <p className="text-green-600 font-medium mb-2">All modules completed!</p>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <BookOpen className="h-16 w-16 mx-auto text-amber-500 mb-4" />
+                    <p className="text-amber-600 mb-2">Keep learning to earn your certificate</p>
+                    <Progress value={totalProgress} className="max-w-xs mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">{Math.round(totalProgress)}% complete</p>
+                  </div>
+                )}
+              </div>
+              <DialogFooter className="sm:justify-center">
+                {canGetCertificate() ? (
+                  <Button className="bg-lsu-purple hover:bg-lsu-purple/90">
+                    Download Certificate
+                  </Button>
+                ) : (
+                  <DialogClose asChild>
+                    <Button variant="outline">Continue Learning</Button>
+                  </DialogClose>
+                )}
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+        
+        <div className="mt-6">
+          <div className="flex justify-between text-sm text-gray-700 mb-2">
+            <span>Overall Progress</span>
+            <span>{Math.round(totalProgress)}%</span>
+          </div>
+          <Progress value={totalProgress} className="h-3" />
+        </div>
+      </div>
       
-      <Tabs defaultValue="in-progress">
-        <TabsList>
-          <TabsTrigger value="in-progress">In Progress</TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
-          <TabsTrigger value="explore">Explore</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="in-progress" className="pt-6">
-          {userData.enrolledModules.length > 0 ? (
-            <>
-              <h2 className="text-xl font-semibold mb-6">Continue Learning</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {userData.enrolledModules.map(module => (
-                  <ModuleCard 
-                    key={module.id} 
-                    {...module} 
-                    locked={module.locked || (unlockedModules && !unlockedModules.includes(module.id))}
-                  />
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-lg text-gray-600">You don't have any modules in progress.</p>
-              <Link to="/modules">
-                <Button variant="outline" className="mt-4">Browse Modules</Button>
-              </Link>
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="completed" className="pt-6">
-          {userData.completedModules.length > 0 ? (
-            <>
-              <h2 className="text-xl font-semibold mb-6">Completed Modules</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {userData.completedModules.map(module => (
-                  <Card key={module.id} className="overflow-hidden flex flex-col h-full">
-                    <div className="relative h-40 overflow-hidden">
-                      <img 
-                        src={module.image} 
-                        alt={module.title}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = "https://via.placeholder.com/400x200?text=AI+Module";
-                        }}
-                      />
-                      <div className="absolute top-4 right-4 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
-                        Completed
-                      </div>
-                    </div>
-                    
-                    <CardHeader>
-                      <CardTitle className="text-lg text-lsu-purple">{module.title}</CardTitle>
-                      <CardDescription>Completed on {module.completionDate}</CardDescription>
-                    </CardHeader>
-                    
-                    <CardContent className="flex-grow">
-                      <p className="text-sm text-gray-600">{module.description}</p>
-                    </CardContent>
-                    
-                    <CardFooter className="pt-0">
-                      <div className="grid grid-cols-2 gap-2 w-full">
-                        <Button variant="outline">View Certificate</Button>
-                        <Button className="bg-lsu-purple hover:bg-lsu-purple/90">Revisit</Button>
-                      </div>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-lg text-gray-600">You haven't completed any modules yet.</p>
-              <Link to="/modules">
-                <Button variant="outline" className="mt-4">Start Learning</Button>
-              </Link>
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="explore" className="pt-6">
-          <h2 className="text-xl font-semibold mb-6">Recommended for You</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="overflow-hidden hover:shadow-md transition-all">
-              <div className="h-40 overflow-hidden">
-                <img 
-                  src="/machine-learning.jpg" 
-                  alt="Machine Learning"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src = "https://via.placeholder.com/400x200?text=Machine+Learning";
-                  }}
-                />
-              </div>
-              <CardHeader>
-                <CardTitle className="text-lg text-lsu-purple">Machine Learning</CardTitle>
-                <CardDescription>7 topics</CardDescription>
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Learning Modules</h2>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {moduleData.map(module => {
+          const isUnlocked = unlockedModules.includes(module.id);
+          const score = quizScores[module.id] || 0;
+          const hasScore = score > 0;
+          
+          return (
+            <Card key={module.id} className={`overflow-hidden ${!isUnlocked ? 'opacity-75' : ''}`}>
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-lg">{module.title}</CardTitle>
+                  {hasScore && (
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      {score}%
+                    </Badge>
+                  )}
+                </div>
+                <CardDescription>{module.topics} topics</CardDescription>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600">
-                  Explore supervised and unsupervised learning, neural networks, and how to implement basic ML models.
-                </p>
+              
+              <CardContent className="pb-2">
+                <p className="text-sm text-gray-600 mb-3">{module.description}</p>
+                
+                <div className="flex items-center gap-2 text-sm">
+                  {isUnlocked ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span className="text-green-700">Unlocked</span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="h-4 w-4 text-gray-400" />
+                      <span className="text-gray-500">Locked</span>
+                    </>
+                  )}
+                </div>
               </CardContent>
-              <CardFooter>
-                <Link to="/learning/machine-learning" className="w-full">
+              
+              <CardFooter className="pt-2">
+                <Link to={isUnlocked ? `/learning/${module.id}` : '#'} className="w-full">
                   <Button 
-                    className="w-full bg-lsu-purple hover:bg-lsu-purple/90"
-                    disabled={!unlockedModules?.includes("machine-learning")}
+                    className={`w-full ${!isUnlocked ? 'bg-gray-400' : 'bg-lsu-purple hover:bg-lsu-purple/90'}`}
+                    disabled={!isUnlocked}
                   >
-                    {unlockedModules?.includes("machine-learning") ? "Start Learning" : "Locked"}
+                    {hasScore ? "Review Module" : (isUnlocked ? "Start Learning" : "Locked")}
                   </Button>
                 </Link>
               </CardFooter>
             </Card>
+          );
+        })}
+      </div>
+      
+      <div className="mt-8 bg-gray-50 rounded-lg border border-gray-200 p-6">
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Progress Summary</h2>
+        
+        <div className="space-y-4">
+          {moduleData.map(module => {
+            const isUnlocked = unlockedModules.includes(module.id);
+            const score = quizScores[module.id] || 0;
             
-            <Card className="overflow-hidden hover:shadow-md transition-all">
-              <div className="h-40 overflow-hidden">
-                <img 
-                  src="/ai-ethics.jpg" 
-                  alt="AI Ethics"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src = "https://via.placeholder.com/400x200?text=AI+Ethics";
-                  }}
-                />
+            return (
+              <div key={module.id} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {isUnlocked ? (
+                    score > 0 ? (
+                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                        <Check className="h-5 w-5 text-green-600" />
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                        <BookOpen className="h-4 w-4 text-amber-600" />
+                      </div>
+                    )
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                      <Lock className="h-4 w-4 text-gray-400" />
+                    </div>
+                  )}
+                  <span className="font-medium">{module.title}</span>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  {score > 0 && (
+                    <Badge className="bg-green-100 text-green-700 border-green-200">
+                      {score}% Score
+                    </Badge>
+                  )}
+                  
+                  <Link to={isUnlocked ? `/learning/${module.id}` : '#'}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      disabled={!isUnlocked}
+                      className={!isUnlocked ? 'opacity-50' : ''}
+                    >
+                      {score > 0 ? "Review" : "Start"}
+                    </Button>
+                  </Link>
+                </div>
               </div>
-              <CardHeader>
-                <CardTitle className="text-lg text-lsu-purple">AI Ethics</CardTitle>
-                <CardDescription>6 topics</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600">
-                  Understand the ethical considerations in AI development including bias, privacy, and responsible implementation.
-                </p>
-              </CardContent>
-              <CardFooter>
-                <Link to="/learning/ai-ethics" className="w-full">
-                  <Button className="w-full bg-lsu-purple hover:bg-lsu-purple/90">Start Learning</Button>
-                </Link>
-              </CardFooter>
-            </Card>
-            
-            <div className="flex flex-col gap-6">
-              <h3 className="font-semibold text-gray-800">Popular Topics</h3>
-              <ul className="space-y-3">
-                <li>
-                  <Link to="/modules" className="flex items-center gap-2 text-gray-700 hover:text-lsu-purple">
-                    <div className="w-2 h-2 rounded-full bg-lsu-gold"></div>
-                    <span>Natural Language Processing</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/modules" className="flex items-center gap-2 text-gray-700 hover:text-lsu-purple">
-                    <div className="w-2 h-2 rounded-full bg-lsu-gold"></div>
-                    <span>Computer Vision</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/modules" className="flex items-center gap-2 text-gray-700 hover:text-lsu-purple">
-                    <div className="w-2 h-2 rounded-full bg-lsu-gold"></div>
-                    <span>Reinforcement Learning</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/modules" className="flex items-center gap-2 text-gray-700 hover:text-lsu-purple">
-                    <div className="w-2 h-2 rounded-full bg-lsu-gold"></div>
-                    <span>Generative AI</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/modules" className="flex items-center gap-2 text-gray-700 hover:text-lsu-purple">
-                    <div className="w-2 h-2 rounded-full bg-lsu-gold"></div>
-                    <span>Deep Learning</span>
-                  </Link>
-                </li>
-              </ul>
-              
-              <Link to="/modules" className="text-lsu-purple hover:underline text-sm font-medium">
-                View all topics →
-              </Link>
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 };

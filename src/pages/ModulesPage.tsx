@@ -76,7 +76,15 @@ const allModules = [
 const ModulesPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
-  const { unlockedModules } = useUser();
+  const { unlockedModules, userProgress } = useUser();
+  
+  // Calculate progress for each module
+  const getModuleProgress = (moduleId: string, topicCount: number) => {
+    if (!userProgress[moduleId] || !unlockedModules.includes(moduleId)) return 0;
+    
+    const completed = Object.values(userProgress[moduleId]).filter(Boolean).length;
+    return Math.round((completed / topicCount) * 100);
+  };
   
   const filteredModules = allModules
     .filter(module => 
@@ -111,13 +119,19 @@ const ModulesPage = () => {
       
       {filteredModules.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {filteredModules.map(module => (
-            <ModuleCard 
-              key={module.id} 
-              {...module} 
-              locked={unlockedModules ? !unlockedModules.includes(module.id) : false}
-            />
-          ))}
+          {filteredModules.map(module => {
+            const isLocked = unlockedModules ? !unlockedModules.includes(module.id) : true;
+            const progress = isLocked ? 0 : getModuleProgress(module.id, module.topics);
+            
+            return (
+              <ModuleCard 
+                key={module.id} 
+                {...module} 
+                locked={isLocked}
+                progress={progress}
+              />
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-12">

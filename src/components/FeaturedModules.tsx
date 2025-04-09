@@ -37,7 +37,36 @@ const featuredModules = [
 ];
 
 const FeaturedModules = () => {
-  const { unlockedModules } = useUser();
+  const { unlockedModules, userProgress } = useUser();
+  
+  // Calculate progress for each module
+  const getModuleProgress = (moduleId: string) => {
+    if (!userProgress[moduleId]) return 0;
+    
+    // Calculate based on module data
+    let topicCount = 0;
+    switch (moduleId) {
+      case "ai-fundamentals":
+        topicCount = 5;
+        break;
+      case "machine-learning":
+        topicCount = 7;
+        break;
+      case "prompt-engineering":
+        topicCount = 4;
+        break;
+      case "ai-ethics":
+        topicCount = 6;
+        break;
+      default:
+        topicCount = 0;
+    }
+    
+    if (topicCount === 0) return 0;
+    
+    const completed = Object.values(userProgress[moduleId]).filter(Boolean).length;
+    return Math.round((completed / topicCount) * 100);
+  };
   
   return (
     <section className="py-20 bg-gray-50">
@@ -50,18 +79,24 @@ const FeaturedModules = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {featuredModules.map((module, index) => (
-            <div 
-              key={module.id} 
-              className="animate-fade-in" 
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <ModuleCard 
-                {...module} 
-                locked={unlockedModules ? !unlockedModules.includes(module.id) : false}
-              />
-            </div>
-          ))}
+          {featuredModules.map((module, index) => {
+            const isLocked = unlockedModules ? !unlockedModules.includes(module.id) : false;
+            const progress = isLocked ? 0 : getModuleProgress(module.id);
+            
+            return (
+              <div 
+                key={module.id} 
+                className="animate-fade-in" 
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <ModuleCard 
+                  {...module} 
+                  locked={isLocked}
+                  progress={progress}
+                />
+              </div>
+            );
+          })}
         </div>
         
         <div className="text-center mt-12">

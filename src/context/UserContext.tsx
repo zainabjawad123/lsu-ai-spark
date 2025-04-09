@@ -9,6 +9,10 @@ type VideoProgress = {
   }
 };
 
+type QuizScore = {
+  [moduleId: string]: number;
+};
+
 export type Module = {
   id: string;
   title: string;
@@ -31,6 +35,12 @@ type UserContextType = {
   userProgress: VideoProgress;
   unlockedModules: string[];
   completeModule: (moduleId: string) => void;
+  setQuizScore: (moduleId: string, score: number) => void;
+  getQuizScore: (moduleId: string) => number;
+  quizScores: QuizScore;
+  areAllTopicsCompleted: (moduleId: string, totalTopics: number) => boolean;
+  getTotalProgress: () => number;
+  canGetCertificate: () => boolean;
 };
 
 type User = {
@@ -44,6 +54,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userProgress, setUserProgress] = useState<VideoProgress>({});
+  const [quizScores, setQuizScores] = useState<QuizScore>({});
   const [unlockedModules, setUnlockedModules] = useState<string[]>(["ai-fundamentals"]);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -120,6 +131,42 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const isVideoCompleted = (moduleId: string, topicId: string): boolean => {
     return !!userProgress[moduleId]?.[topicId];
   };
+  
+  const areAllTopicsCompleted = (moduleId: string, totalTopics: number): boolean => {
+    if (!userProgress[moduleId]) return false;
+    
+    const completedTopics = Object.values(userProgress[moduleId]).filter(completed => completed).length;
+    return completedTopics === totalTopics;
+  };
+
+  const setQuizScore = (moduleId: string, score: number) => {
+    setQuizScores(prev => ({
+      ...prev,
+      [moduleId]: score
+    }));
+  };
+
+  const getQuizScore = (moduleId: string): number => {
+    return quizScores[moduleId] || 0;
+  };
+
+  const getTotalProgress = (): number => {
+    const moduleOrder = ["ai-fundamentals", "machine-learning", "prompt-engineering", "ai-ethics"];
+    let completedModules = 0;
+    
+    for (const moduleId of moduleOrder) {
+      if (quizScores[moduleId] && quizScores[moduleId] > 0) {
+        completedModules++;
+      }
+    }
+    
+    return moduleOrder.length > 0 ? (completedModules / moduleOrder.length) * 100 : 0;
+  };
+
+  const canGetCertificate = (): boolean => {
+    const moduleOrder = ["ai-fundamentals", "machine-learning", "prompt-engineering", "ai-ethics"];
+    return moduleOrder.every(moduleId => quizScores[moduleId] && quizScores[moduleId] > 0);
+  };
 
   const completeModule = (moduleId: string) => {
     // Logic to determine which module to unlock next
@@ -149,7 +196,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     isVideoCompleted,
     userProgress,
     unlockedModules,
-    completeModule
+    completeModule,
+    setQuizScore,
+    getQuizScore,
+    quizScores,
+    areAllTopicsCompleted,
+    getTotalProgress,
+    canGetCertificate
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
