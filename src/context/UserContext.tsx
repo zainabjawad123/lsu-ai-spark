@@ -41,6 +41,8 @@ type UserContextType = {
   areAllTopicsCompleted: (moduleId: string, totalTopics: number) => boolean;
   getTotalProgress: () => number;
   canGetCertificate: () => boolean;
+  getUserLevel: () => string;
+  completedLevels: string[];
 };
 
 type User = {
@@ -56,8 +58,16 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [userProgress, setUserProgress] = useState<VideoProgress>({});
   const [quizScores, setQuizScores] = useState<QuizScore>({});
   const [unlockedModules, setUnlockedModules] = useState<string[]>(["ai-fundamentals"]);
+  const [completedLevels, setCompletedLevels] = useState<string[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Module structure by level
+  const modulesByLevel = {
+    beginner: ["ai-fundamentals", "machine-learning", "prompt-engineering", "ai-ethics"],
+    intermediate: ["deep-learning", "computer-vision", "nlp", "ai-applications"],
+    advanced: ["data-privacy", "future-ai", "responsible-ai", "ai-research"]
+  };
 
   // Load user data from localStorage on initial render
   useEffect(() => {
@@ -65,6 +75,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const storedProgress = localStorage.getItem('userProgress');
     const storedQuizScores = localStorage.getItem('quizScores');
     const storedUnlockedModules = localStorage.getItem('unlockedModules');
+    const storedCompletedLevels = localStorage.getItem('completedLevels');
     
     if (storedUser) {
       setUser(JSON.parse(storedUser));
@@ -80,6 +91,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     
     if (storedUnlockedModules) {
       setUnlockedModules(JSON.parse(storedUnlockedModules));
+    }
+    
+    if (storedCompletedLevels) {
+      setCompletedLevels(JSON.parse(storedCompletedLevels));
     }
   }, []);
 
@@ -103,6 +118,43 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     localStorage.setItem('unlockedModules', JSON.stringify(unlockedModules));
   }, [unlockedModules]);
+
+  useEffect(() => {
+    localStorage.setItem('completedLevels', JSON.stringify(completedLevels));
+  }, [completedLevels]);
+
+  // Check if level is completed whenever quiz scores change
+  useEffect(() => {
+    Object.entries(modulesByLevel).forEach(([level, modules]) => {
+      // Check if all modules in this level have quiz scores > 0
+      const isLevelCompleted = modules.every(moduleId => quizScores[moduleId] && quizScores[moduleId] > 0);
+      
+      if (isLevelCompleted && !completedLevels.includes(level)) {
+        // Level completed, add to completed levels
+        setCompletedLevels(prev => [...prev, level]);
+        
+        // Unlock first module of next level if available
+        if (level === "beginner" && !unlockedModules.includes("deep-learning")) {
+          setUnlockedModules(prev => [...prev, "deep-learning"]);
+          toast({
+            title: "New Level Unlocked!",
+            description: "You've unlocked the Intermediate level. Start exploring new modules!",
+          });
+        } else if (level === "intermediate" && !unlockedModules.includes("data-privacy")) {
+          setUnlockedModules(prev => [...prev, "data-privacy"]);
+          toast({
+            title: "New Level Unlocked!",
+            description: "You've unlocked the Advanced level. Start exploring new modules!",
+          });
+        }
+        
+        toast({
+          title: "Level Completed!",
+          description: `Congratulations! You've completed the ${level} level and earned a certificate.`,
+        });
+      }
+    });
+  }, [quizScores, completedLevels, unlockedModules, toast]);
 
   const login = (email: string, password: string) => {
     // Mock login logic
@@ -195,31 +247,46 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     return quizScores[moduleId] || 0;
   };
 
+  const getUserLevel = (): string => {
+    // Find the current user level based on unlocked modules
+    if (unlockedModules.some(moduleId => modulesByLevel.advanced.includes(moduleId))) {
+      return "advanced";
+    } else if (unlockedModules.some(moduleId => modulesByLevel.intermediate.includes(moduleId))) {
+      return "intermediate";
+    } else {
+      return "beginner";
+    }
+  };
+
   const getTotalProgress = (): number => {
-    const moduleOrder = ["ai-fundamentals", "machine-learning", "prompt-engineering", "ai-ethics"];
+    // Calculate progress based on all available modules across all levels
+    const allModules = [...modulesByLevel.beginner, ...modulesByLevel.intermediate, ...modulesByLevel.advanced];
     let completedModules = 0;
     
-    for (const moduleId of moduleOrder) {
+    for (const moduleId of allModules) {
       if (quizScores[moduleId] && quizScores[moduleId] > 0) {
         completedModules++;
       }
     }
     
-    return moduleOrder.length > 0 ? (completedModules / moduleOrder.length) * 100 : 0;
+    return allModules.length > 0 ? (completedModules / allModules.length) * 100 : 0;
   };
 
   const canGetCertificate = (): boolean => {
-    const moduleOrder = ["ai-fundamentals", "machine-learning", "prompt-engineering", "ai-ethics"];
-    return moduleOrder.every(moduleId => quizScores[moduleId] && quizScores[moduleId] > 0);
+    return completedLevels.length > 0;
   };
 
   const completeModule = (moduleId: string) => {
     // Logic to determine which module to unlock next
-    const moduleOrder = ["ai-fundamentals", "machine-learning", "prompt-engineering", "ai-ethics"];
-    const currentIndex = moduleOrder.indexOf(moduleId);
+    const currentLevel = getUserLevel();
+    const currentLevelModules = modulesByLevel[currentLevel as keyof typeof modulesByLevel];
     
-    if (currentIndex >= 0 && currentIndex < moduleOrder.length - 1) {
-      const nextModule = moduleOrder[currentIndex + 1];
+    if (!currentLevelModules) return;
+    
+    const currentIndex = currentLevelModules.indexOf(moduleId);
+    
+    if (currentIndex >= 0 && currentIndex < currentLevelModules.length - 1) {
+      const nextModule = currentLevelModules[currentIndex + 1];
       
       if (!unlockedModules.includes(nextModule)) {
         setUnlockedModules(prev => [...prev, nextModule]);
@@ -247,7 +314,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     quizScores,
     areAllTopicsCompleted,
     getTotalProgress,
-    canGetCertificate
+    canGetCertificate,
+    getUserLevel,
+    completedLevels
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
