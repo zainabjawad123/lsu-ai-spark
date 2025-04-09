@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,7 +8,6 @@ import { Check, Play, Award, Lock, CheckCircle } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useToast } from "@/components/ui/use-toast";
 
-// Mock course module data
 const moduleData = {
   "ai-fundamentals": {
     title: "AI Fundamentals",
@@ -69,13 +67,11 @@ const moduleData = {
         videoUrl: "https://www.youtube.com/embed/JMUxmLyrhSk",
         description: "Learn about classification, regression, and how models learn from labeled data.",
         completed: false
-      },
-      // Additional topics would be listed here
+      }
     ]
   }
 };
 
-// Mock quiz data
 const quizData = {
   "ai-fundamentals": {
     "intro": [
@@ -116,6 +112,7 @@ const quizData = {
 const LearningPage = () => {
   const { moduleId } = useParams<{ moduleId: string }>();
   const [currentTopicIndex, setCurrentTopicIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState("video");
   const [showQuiz, setShowQuiz] = useState(false);
   const [quizAnswers, setQuizAnswers] = useState<number[]>([]);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
@@ -131,7 +128,6 @@ const LearningPage = () => {
     completeModule
   } = useUser();
   
-  // Check if user is authenticated
   useEffect(() => {
     if (!isAuthenticated) {
       toast({
@@ -142,7 +138,6 @@ const LearningPage = () => {
     }
   }, [isAuthenticated, navigate, toast]);
   
-  // Check if module is unlocked
   useEffect(() => {
     if (moduleId && unlockedModules && !unlockedModules.includes(moduleId)) {
       toast({
@@ -161,10 +156,14 @@ const LearningPage = () => {
   const currentTopic = module.topics[currentTopicIndex];
   const quiz = quizData[moduleId as keyof typeof quizData]?.[currentTopic.id];
   
-  // Check if current topic's video has been completed
   const isCurrentTopicVideoCompleted = isVideoCompleted(moduleId, currentTopic.id);
   
-  // Calculate progress based on videos watched
+  useEffect(() => {
+    setVideoWatched(isVideoCompleted(moduleId, currentTopic.id));
+    setQuizSubmitted(false);
+    setQuizAnswers([]);
+  }, [moduleId, currentTopic.id, isVideoCompleted]);
+  
   const completedTopicsCount = module.topics.reduce((count, topic) => {
     return isVideoCompleted(moduleId, topic.id) ? count + 1 : count;
   }, 0);
@@ -173,6 +172,7 @@ const LearningPage = () => {
   
   const handleTopicChange = (index: number) => {
     setCurrentTopicIndex(index);
+    setActiveTab("video");
     setShowQuiz(false);
     setQuizAnswers([]);
     setQuizSubmitted(false);
@@ -199,9 +199,7 @@ const LearningPage = () => {
   const handleQuizSubmit = () => {
     setQuizSubmitted(true);
     
-    // Check if this was the last topic in the module
     if (currentTopicIndex === module.topics.length - 1) {
-      // Check if all topics are now completed
       const allTopicsCompleted = module.topics.every((topic) => 
         isVideoCompleted(moduleId, topic.id)
       );
@@ -217,6 +215,10 @@ const LearningPage = () => {
     0;
     
   const quizPassed = quizScore >= Math.ceil(quiz?.length * 0.7);
+  
+  const switchToQuiz = () => {
+    setActiveTab("quiz");
+  };
   
   return (
     <div className="container py-12">
@@ -290,65 +292,61 @@ const LearningPage = () => {
         </div>
         
         <div className="lg:col-span-3">
-          <Tabs defaultValue="video" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-2 mb-6">
-              <TabsTrigger value="video" disabled={showQuiz}>Video Lecture</TabsTrigger>
-              <TabsTrigger value="quiz" disabled={!quiz || !videoWatched}>Quiz</TabsTrigger>
+              <TabsTrigger value="video">Video Lecture</TabsTrigger>
+              <TabsTrigger value="quiz" disabled={!videoWatched}>Quiz</TabsTrigger>
             </TabsList>
             
             <TabsContent value="video" className="mt-0">
-              {!showQuiz && (
-                <>
-                  <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-lg shadow-md mb-6">
-                    <iframe 
-                      src={currentTopic.videoUrl} 
-                      title={currentTopic.title}
-                      className="absolute top-0 left-0 w-full h-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
-                  </div>
+              <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-lg shadow-md mb-6">
+                <iframe 
+                  src={currentTopic.videoUrl} 
+                  title={currentTopic.title}
+                  className="absolute top-0 left-0 w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+              
+              <div className="prose max-w-none">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-semibold mb-0 text-gray-800">{currentTopic.title}</h2>
+                  {isCurrentTopicVideoCompleted && (
+                    <div className="flex items-center text-green-600">
+                      <CheckCircle className="mr-1 h-5 w-5" />
+                      <span>Watched</span>
+                    </div>
+                  )}
+                </div>
+                
+                <p className="text-gray-700 mb-6">{currentTopic.description}</p>
+                
+                <div className="flex justify-between items-center mt-8">
+                  {!isCurrentTopicVideoCompleted ? (
+                    <Button 
+                      onClick={handleVideoComplete}
+                      className="bg-lsu-purple hover:bg-lsu-purple/90"
+                    >
+                      Mark as Watched
+                    </Button>
+                  ) : (
+                    <div className="text-green-600 flex items-center">
+                      <CheckCircle className="mr-2 h-5 w-5" />
+                      <span>Video Completed</span>
+                    </div>
+                  )}
                   
-                  <div className="prose max-w-none">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-2xl font-semibold mb-0 text-gray-800">{currentTopic.title}</h2>
-                      {isCurrentTopicVideoCompleted && (
-                        <div className="flex items-center text-green-600">
-                          <CheckCircle className="mr-1 h-5 w-5" />
-                          <span>Watched</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <p className="text-gray-700 mb-6">{currentTopic.description}</p>
-                    
-                    <div className="flex justify-between items-center mt-8">
-                      {!isCurrentTopicVideoCompleted ? (
-                        <Button 
-                          onClick={handleVideoComplete}
-                          className="bg-lsu-purple hover:bg-lsu-purple/90"
-                        >
-                          Mark as Watched
-                        </Button>
-                      ) : (
-                        <div className="text-green-600 flex items-center">
-                          <CheckCircle className="mr-2 h-5 w-5" />
-                          <span>Video Completed</span>
-                        </div>
-                      )}
-                      
-                      {quiz && videoWatched && (
-                        <Button 
-                          onClick={() => setShowQuiz(true)}
-                          className="bg-lsu-purple hover:bg-lsu-purple/90"
-                        >
-                          Take Quiz <Play className="ml-2 h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
+                  {quiz && videoWatched && (
+                    <Button 
+                      onClick={switchToQuiz}
+                      className="bg-lsu-purple hover:bg-lsu-purple/90"
+                    >
+                      Take Quiz <Play className="ml-2 h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
             </TabsContent>
             
             <TabsContent value="quiz" className="mt-0">
@@ -414,7 +412,7 @@ const LearningPage = () => {
                       <div className="flex flex-col sm:flex-row gap-3 justify-center">
                         <Button 
                           onClick={() => {
-                            setShowQuiz(false);
+                            setActiveTab("video");
                             setQuizAnswers([]);
                             setQuizSubmitted(false);
                           }}
