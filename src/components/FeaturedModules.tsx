@@ -41,7 +41,7 @@ const FeaturedModules = () => {
   
   // Calculate progress for each module
   const getModuleProgress = (moduleId: string) => {
-    if (!userProgress[moduleId]) return 0;
+    if (!userProgress[moduleId] || !unlockedModules.includes(moduleId)) return 0;
     
     // Calculate based on module data
     let topicCount = 0;
@@ -64,7 +64,7 @@ const FeaturedModules = () => {
     
     if (topicCount === 0) return 0;
     
-    const completed = Object.values(userProgress[moduleId]).filter(Boolean).length;
+    const completed = Object.values(userProgress[moduleId] || {}).filter(Boolean).length;
     return Math.round((completed / topicCount) * 100);
   };
   
@@ -80,7 +80,7 @@ const FeaturedModules = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {featuredModules.map((module, index) => {
-            const isLocked = unlockedModules ? !unlockedModules.includes(module.id) : false;
+            const isLocked = !unlockedModules.includes(module.id);
             const progress = isLocked ? 0 : getModuleProgress(module.id);
             
             return (

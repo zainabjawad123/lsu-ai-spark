@@ -22,7 +22,7 @@ const ModuleCard = ({ id, title, description, image, topics, progress = 0, locke
   // Check if the module is locked based on the unlockedModules state
   const isLocked = locked || (unlockedModules && !unlockedModules.includes(id));
   
-  // Only show progress if the module is unlocked
+  // Only show progress if the module is unlocked and there is progress
   const showProgress = !isLocked && progress > 0;
   
   return (

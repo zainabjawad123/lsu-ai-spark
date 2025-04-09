@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -103,6 +102,150 @@ const quizData = {
           "Natural Language Processing",
           "Quantum Computing",
           "Computer Vision"
+        ],
+        correctAnswer: 2
+      }
+    ],
+    "types": [
+      {
+        question: "What is narrow AI?",
+        options: [
+          "AI designed to work in small spaces",
+          "AI focused on a specific task",
+          "AI with limited computing power",
+          "AI that uses less memory"
+        ],
+        correctAnswer: 1
+      },
+      {
+        question: "Which is an example of general AI?",
+        options: [
+          "A chess-playing AI",
+          "A spam filter",
+          "A human-level AI that can learn any intellectual task",
+          "A facial recognition system"
+        ],
+        correctAnswer: 2
+      },
+      {
+        question: "How are AI systems typically classified?",
+        options: [
+          "By their size and power consumption",
+          "By their functionality and capability level",
+          "By their manufacturer",
+          "By their programming language"
+        ],
+        correctAnswer: 1
+      }
+    ],
+    "algorithms": [
+      {
+        question: "What is a search algorithm in AI?",
+        options: [
+          "A method to find information on the internet",
+          "A way to search through databases",
+          "A method to find a solution in a problem space",
+          "A technique to locate missing files"
+        ],
+        correctAnswer: 2
+      },
+      {
+        question: "Which is NOT a common AI search algorithm?",
+        options: [
+          "Breadth-first search",
+          "Depth-first search",
+          "A* search",
+          "SQL search"
+        ],
+        correctAnswer: 3
+      }
+    ],
+    "applications": [
+      {
+        question: "Which industry has NOT been significantly impacted by AI?",
+        options: [
+          "Healthcare",
+          "Finance",
+          "Ancient History Analysis",
+          "Transportation"
+        ],
+        correctAnswer: 2
+      },
+      {
+        question: "What is a common AI application in healthcare?",
+        options: [
+          "Replacing all doctors",
+          "Disease diagnosis assistance",
+          "Hospital building design",
+          "Patient billing"
+        ],
+        correctAnswer: 1
+      }
+    ],
+    "future": [
+      {
+        question: "Which is a major ethical concern with future AI development?",
+        options: [
+          "AI becoming too expensive",
+          "AI systems taking too much electricity",
+          "Algorithmic bias and discrimination",
+          "AI not being colorful enough"
+        ],
+        correctAnswer: 2
+      },
+      {
+        question: "What is the concept of the 'singularity' in AI?",
+        options: [
+          "When AI becomes self-aware",
+          "The point where AI surpasses human intelligence",
+          "When all computers connect to form a single AI",
+          "The moment when AI can repair itself"
+        ],
+        correctAnswer: 1
+      }
+    ]
+  },
+  "machine-learning": {
+    "intro": [
+      {
+        question: "What is machine learning?",
+        options: [
+          "Learning about machines",
+          "Teaching computers to program themselves",
+          "Algorithms that allow computers to learn from data",
+          "Robotics education"
+        ],
+        correctAnswer: 2
+      },
+      {
+        question: "Which is NOT a type of machine learning?",
+        options: [
+          "Supervised learning",
+          "Unsupervised learning",
+          "Reinforcement learning",
+          "Mandatory learning"
+        ],
+        correctAnswer: 3
+      }
+    ],
+    "supervised": [
+      {
+        question: "In supervised learning, what is a label?",
+        options: [
+          "A name tag for the algorithm",
+          "The known output value that the algorithm tries to predict",
+          "A category of machine learning",
+          "The programmer's signature"
+        ],
+        correctAnswer: 1
+      },
+      {
+        question: "Which is an example of a supervised learning task?",
+        options: [
+          "Clustering similar customers",
+          "Finding patterns in unlabeled data",
+          "Email spam classification",
+          "Exploring data without a specific goal"
         ],
         correctAnswer: 2
       }
@@ -368,37 +511,49 @@ const LearningPage = () => {
                   
                   {!quizSubmitted ? (
                     <>
-                      {quiz && quiz.map((question, qIndex) => (
-                        <div key={qIndex} className="mb-8">
-                          <h3 className="text-lg font-medium mb-3">
-                            {qIndex + 1}. {question.question}
-                          </h3>
-                          <div className="space-y-2">
-                            {question.options.map((option, oIndex) => (
-                              <div key={oIndex}>
-                                <label className="flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50 cursor-pointer">
-                                  <input
-                                    type="radio"
-                                    name={`question-${qIndex}`}
-                                    checked={quizAnswers[qIndex] === oIndex}
-                                    onChange={() => handleQuizAnswer(qIndex, oIndex)}
-                                    className="form-radio h-5 w-5 text-lsu-purple"
-                                  />
-                                  <span className="text-gray-700">{option}</span>
-                                </label>
+                      {quiz && quiz.length > 0 ? (
+                        <>
+                          {quiz.map((question, qIndex) => (
+                            <div key={qIndex} className="mb-8">
+                              <h3 className="text-lg font-medium mb-3">
+                                {qIndex + 1}. {question.question}
+                              </h3>
+                              <div className="space-y-2">
+                                {question.options.map((option, oIndex) => (
+                                  <div key={oIndex}>
+                                    <label className="flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50 cursor-pointer">
+                                      <input
+                                        type="radio"
+                                        name={`question-${qIndex}`}
+                                        checked={quizAnswers[qIndex] === oIndex}
+                                        onChange={() => handleQuizAnswer(qIndex, oIndex)}
+                                        className="form-radio h-5 w-5 text-lsu-purple"
+                                      />
+                                      <span className="text-gray-700">{option}</span>
+                                    </label>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
+                            </div>
+                          ))}
+                          
+                          <Button 
+                            onClick={handleQuizSubmit}
+                            disabled={!quiz || quizAnswers.length < (quiz?.length || 0)}
+                            className="bg-lsu-purple hover:bg-lsu-purple/90 mt-4"
+                          >
+                            Submit Quiz
+                          </Button>
+                        </>
+                      ) : (
+                        <div className="text-center py-12">
+                          <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+                          <h3 className="text-xl font-bold mb-2">No Quiz Available</h3>
+                          <p className="text-gray-600 mb-4">
+                            We're still preparing the quiz for this module. Please check back soon!
+                          </p>
                         </div>
-                      ))}
-                      
-                      <Button 
-                        onClick={handleQuizSubmit}
-                        disabled={!quiz || quizAnswers.length < (quiz?.length || 0)}
-                        className="bg-lsu-purple hover:bg-lsu-purple/90 mt-4"
-                      >
-                        Submit Quiz
-                      </Button>
+                      )}
                     </>
                   ) : (
                     <div className="text-center py-8">
